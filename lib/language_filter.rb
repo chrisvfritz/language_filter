@@ -93,7 +93,11 @@ module LanguageFilter
 			when Array    then not content.empty?    || raise(LanguageFilter::EmptyContentList.new("List content array is empty."))
 			when String   then File.exists?(content) || raise(LanguageFilter::UnkownContentFile.new("List content file \"#{content}\" can't be found."))
 			when Pathname then content.exist?        || raise(LanguageFilter::UnkownContentFile.new("List content file \"#{content}\" can't be found."))
-			when Symbol   then content == :default   || raise(LanguageFilter::UnkownContent.new("The only accepted symbol is :default."))
+			when Symbol   then
+				case content
+				when :default, :hate, :profanity, :sex, :violence then true
+				else raise(LanguageFilter::UnkownContent.new("The only accepted symbols are :default, :hate, :profanity, :sex, and :violence."))
+				end
 			else raise LanguageFilter::UnkownContent.new("The list content can be either an Array, Pathname, or String path to a file.")
 			end
 		end

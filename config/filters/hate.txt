@@ -3,4 +3,4 @@
 \w*c[\b_]*u[\b_]*n[\b_]*t\w*
 \w*a[s\$5z]{2}h[o0]l[e3]\w*
 \w*b[\b_]*i[\b_]*t[\b_]*c[\b_]*h\w*
-fudgepack\w*
+fudge ?pack\w*
