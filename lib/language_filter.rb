@@ -96,6 +96,7 @@ module LanguageFilter
 			case @replacement
 			when :default, :garbled, :vowels, :stars, :nonconsonants
 			else raise LanguageFilter::UnknownReplacement.new("This is not a known replacement type.")
+			end
 		end
 
 		# HELPERS

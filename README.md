@@ -1,6 +1,6 @@
 # LanguageFilter
 
-LanguageFilter is a Ruby gem to detect and optionally filter various categories of language. It was adapted from Thiago Jackiw's Obscenity gem to create a simple, intuitive way to detect and optionally filter multiple categories of language, originally for FractalWriting.org's diverse community.
+LanguageFilter is a Ruby gem to detect and optionally filter multiple categories of language. It was adapted from Thiago Jackiw's Obscenity gem to create a simple, intuitive way to detect and optionally filter multiple categories of language, originally for FractalWriting.org's diverse community.
 
 With multiple language categories and 
 
