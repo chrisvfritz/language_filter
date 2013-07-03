@@ -56,7 +56,7 @@ module LanguageFilter
 		def match?(text)
 			return false unless text.to_s.size >= 3
 			@matchlist.each do |list_item|
-				text.scan(/\b#{list_item}\b/i) {|match| return true unless protected_by_exceptionlist? match or match == [nil] }
+				text.scan(/\b#{list_item}\b/i) {|match| return true unless protected_by_exceptionlist?(match) or match == [nil] }
 			end
 			false
 		end
@@ -65,7 +65,7 @@ module LanguageFilter
 			return text unless text.to_s.size >= 3
 			@matchlist.each do |list_item|
 				text.gsub! /\b#{list_item}\b/i do |match| 
-					if protected_by_exceptionlist? match then
+					if protected_by_exceptionlist?(match) then
 						match
 					else
 						replace(match)
@@ -79,9 +79,14 @@ module LanguageFilter
 			words = []
 			return words unless text.to_s.size >= 3
 			@matchlist.each do |list_item|
-				text.scan(/\b#{list_item}\b/i) {|match| words << match unless protected_by_exceptionlist? match or match == [nil] }
+				text.scan(/\b#{list_item}\b/i) {|match| words << match unless protected_by_exceptionlist?(match) or match == [nil] }
 			end
 			words.uniq
+		end
+
+		def protected_by_exceptionlist?(text)
+			@exceptionlist.each { |list_item| return true unless text.scan(/\b#{list_item}\b/i).empty? }
+			return false
 		end
 
 		private
@@ -90,7 +95,7 @@ module LanguageFilter
 
 		def validate_list_content(content)
 			case content
-			when Array    then not content.empty?    || raise(LanguageFilter::EmptyContentList.new("List content array is empty."))
+			when Array    then not(content.empty?)   || raise(LanguageFilter::EmptyContentList.new("List content array is empty."))
 			when String   then File.exists?(content) || raise(LanguageFilter::UnkownContentFile.new("List content file \"#{content}\" can't be found."))
 			when Pathname then content.exist?        || raise(LanguageFilter::UnkownContentFile.new("List content file \"#{content}\" can't be found."))
 			when Symbol   then
@@ -136,11 +141,6 @@ module LanguageFilter
 			when :default, :garbled then '$@!#%'
 			else raise LanguageFilter::UnknownReplacement.new("#{@replacement} is not a known replacement type.")
 			end
-		end
-
-		def protected_by_exceptionlist?(text)
-			@exceptionlist.each { |list_item| return true unless text.scan(/\b#{list_item}\b/i).empty? }
-			return false
 		end
 	end
 end

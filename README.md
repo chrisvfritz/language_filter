@@ -29,7 +29,7 @@ $ gem install language_filter
 Need a new language filter? Here's a quick usage example:
 
 ``` ruby
-sex_filter = LanguageFilter.new matchlist: :sex, replacement: :stars
+sex_filter = LanguageFilter::Filter.new matchlist: :sex, replacement: :stars
 
 # returns true if any content matched the filter's matchlist, else false
 sex_filter.match?('This is some sexual content.')
@@ -44,14 +44,14 @@ sex_filter.matched('This is some sexual content.')
 => ["sexual"]
 ```
 
-Now let's go over this a little more methodically. When you create a new LanguageFilter, you simply call LanguageFilter.new, with any of the following optional parameters. Below, you can see their defaults.
+Now let's go over this a little more methodically. When you create a new LanguageFilter, you simply call LanguageFilter::Filter.new, with any of the following optional parameters. Below, you can see their defaults.
 
 ``` ruby
-LanguageFilter.new(
-                    matchlist: :profanity,
-                    exceptionlist: [],
-                    replacement: :stars
-                  )
+LanguageFilter::Filter.new(
+                            matchlist: :profanity,
+                            exceptionlist: [],
+                            replacement: :stars
+                          )
 ```
 
 Now let's dive a little deeper into each parameter.
@@ -73,9 +73,11 @@ There's quite a bit of overlap between these lists, but they can be useful for c
 
 #### An array of words and phrases to screen for
 
-- `matchlist: ['giraffe(s)?','rhino[\w]*','elephant(s)?'] # a non-exhaustive list of African animals`
+- `matchlist: ['giraffes?','rhino\w*','elephants?'] # a non-exhaustive list of African animals`
 
-As you may have noticed, you can include regex! In fact, each item you enter in the list is just dumped in the middle of this regex for matching, through the `list_item` variable.
+As you may have noticed, you can include regex! However, if you do, keep in mind that the more complicated regex you include, the slow the matching will be. Also, if you're assigning an array directly to matchlist and want to use regex, be sure to use single quotes (`'text'`), rather than double quotes (`"text"`). Otherwise, Ruby will think your backslashes are to help it interpolate the string, rather than to be intrepreted literally. 
+
+In the actual matching, each item you enter in the list is dumped into the middle of the following regex for matching, through the `list_item` variable.
 
 ``` ruby
 /\b#{list_item}\b/i
@@ -92,7 +94,7 @@ If you'd like to master some regex Rubyfu, I highly recommend stopping at [Rubul
 
 #### A filepath or string pointing to a filepath
 
-If you want to use your own YAML lists, there are two ways to do it.
+If you want to use your own lists, there are two ways to do it.
 
 Pass in a dynamically generated filepath (which is my preferred method):
 
@@ -108,17 +110,17 @@ matchlist: "/home/username/webapps/rails/my_app/config/filters/violence.yml"
 
 If you haven't already guessed why I prefer the first method, it's because it won't break if you move your Rails app to a different folder.
 
-##### Formatting your matchlists and exceptionlists
+##### Formatting your lists
 
 Now when you're actually writing these lists, they both use the same, relatively simple format, which looks something like this:
 
-``` YAML
-- giraffe(s)?
-- rhino[\w]*
-- elephant(s)?
+``` regex
+giraffes?
+rhino\w*
+elephants?
 ```
 
-It's a pretty simple pattern. If it needs further explanation, let me know.
+It's a pretty simple pattern. Each word, phrase, or regex is on its own line - and that's it.
 
 ### `:replacement`
 
@@ -145,11 +147,11 @@ If you ever want to change the matchlist, exceptionlist, or replacement type, ea
 For example:
 
 ``` ruby
-my_filter = LanguageFilter.new(
-                                matchlist: ['dog(s)?'], 
-                                exceptionlist: ['dogs drool'],
-                                replacement: :garbled
-                              )
+my_filter = LanguageFilter::Filter.new(
+                                        matchlist: ['dog(s)?'], 
+                                        exceptionlist: ['dogs drool'],
+                                        replacement: :garbled
+                                      )
 
 my_filter.sanitize('Dogs rule, cats drool!')
 => "$@!#% rule, cats drool!"
