@@ -19,7 +19,7 @@ module LanguageFilter
 		# SETTERS
 
 		def matchlist=(content)
-			if content == :default
+			if content == :default then
 				@matchlist = DEFAULT_MATCHLIST
 			else
 				validate_list_content(content)
@@ -28,7 +28,7 @@ module LanguageFilter
 		end
 
 		def exceptionlist=(content)
-			if content == :default
+			if content == :default then
 				@exceptionlist = DEFAULT_EXCEPTIONLIST
 			else
 				validate_list_content(content)
@@ -37,7 +37,7 @@ module LanguageFilter
 		end
 
 		def replacement=(value)
-			if value == :default
+			if value == :default then
 				@replacement = :stars
 			else
 				@replacement = value
@@ -50,7 +50,7 @@ module LanguageFilter
 		def match?(word)
 			return false unless text.to_s.size >= 3
 			@matchlist.each do |list_item|
-				return true if text =~ /\b#{list_item}\b/i && !@exceptionlist.include? list_item
+				return true if text =~ /\b#{list_item}\b/i and not @exceptionlist.include? list_item
 			end
 			false
 		end
@@ -67,7 +67,7 @@ module LanguageFilter
 			words = []
 			return words unless text.to_s.size >= 3
 			@matchlist.each do |list_item|
-				words << list_item if text =~ /\b#{list_item}\b/i && !@exceptionlist.include?(list_item)
+				words << list_item if text =~ /\b#{list_item}\b/i and not @exceptionlist.include?(list_item)
 			end
 			words.uniq
 		end
@@ -83,12 +83,11 @@ module LanguageFilter
 
 		def validate_list_content(content)
 			case content
-			when Array    then !content.empty?       || raise LanguageFilter::EmptyContentList.new('List content array is empty.')
-			when String   then File.exists?(content) || raise LanguageFilter::UnkownContentFile.new("List content file can't be found.")
-			when Pathname then content.exist?        || raise LanguageFilter::UnkownContentFile.new("List content file can't be found.")
-			when Symbol   then content == :default   || raise LanguageFilter::UnkownContent.new("The only accepted symbol is :default.")
-			else
-				raise LanguageFilter::UnkownContent.new("The list content can be either an Array, Pathname, or String path to a .yml file.")
+			when Array    then not content.empty?    || raise(LanguageFilter::EmptyContentList.new("List content array is empty."))
+			when String   then File.exists?(content) || raise(LanguageFilter::UnkownContentFile.new("List content file can't be found."))
+			when Pathname then content.exist?        || raise(LanguageFilter::UnkownContentFile.new("List content file can't be found."))
+			when Symbol   then content == :default   || raise(LanguageFilter::UnkownContent.new("The only accepted symbol is :default."))
+			else raise LanguageFilter::UnkownContent.new("The list content can be either an Array, Pathname, or String path to a .yml file.")
 			end
 		end
 
