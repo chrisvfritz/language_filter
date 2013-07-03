@@ -4,7 +4,7 @@ require 'language_filter/error'
 require 'language_filter/version'
 
 module LanguageFilter
-	class Test
+	class Filter
 		attr_accessor :matchlist, :exceptionlist, :replacement
 
 		DEFAULT_EXCEPTIONLIST = []
@@ -13,50 +13,50 @@ module LanguageFilter
 
 		def initialize(options={})
 			@matchlist = if options[:matchlist] then
+				validate_list_content(options[:matchlist])
 				set_list_content(options[:matchlist])
 			else set_list_content(DEFAULT_MATCHLIST) end
 			@exceptionlist = if options[:exceptionlist] then
+				validate_list_content(options[:exceptionlist])
 				set_list_content(options[:exceptionlist]) 
 			else set_list_content(DEFAULT_EXCEPTIONLIST) end
 			@replacement = options[:replacement] || DEFAULT_REPLACEMENT
-			validate_options
+			validate_replacement
 		end
 
 		# SETTERS
 
 		def matchlist=(content)
-			if content == :default then
-				@matchlist = DEFAULT_MATCHLIST
-			else
-				validate_list_content(content)
-				@matchlist = set_list_content(content) || DEFAULT_MATCHLIST
+			validate_list_content(content)
+			@matchlist = case content 
+			when :default then set_list_content(DEFAULT_MATCHLIST)
+			else @matchlist = set_list_content(content)
 			end
 		end
 
 		def exceptionlist=(content)
 			if content == :default then
-				@exceptionlist = DEFAULT_EXCEPTIONLIST
+				@exceptionlist = set_list_content(DEFAULT_EXCEPTIONLIST)
 			else
 				validate_list_content(content)
-				@matchlist = set_list_content(content) || DEFAULT_EXCEPTIONLIST
+				@exceptionlist = set_list_content(content)
 			end
 		end
 
 		def replacement=(value)
-			if value == :default then
-				@replacement = :stars
-			else
-				@replacement = value
-				validate_replacement
+			@replacement = case value 
+			when :default then :stars
+			else value
 			end
+			validate_replacement
 		end
 
 		# LANGUAGE
 
-		def match?(word)
+		def match?(text)
 			return false unless text.to_s.size >= 3
 			@matchlist.each do |list_item|
-				return true if text =~ /\b#{list_item}\b/i and not @exceptionlist.include? list_item
+				text.scan(/\b#{list_item}\b/i) {|match| return true unless protected_by_exceptionlist? match or match == [nil] }
 			end
 			false
 		end
@@ -64,7 +64,13 @@ module LanguageFilter
 		def sanitize(text)
 			return text unless text.to_s.size >= 3
 			@matchlist.each do |list_item|
-				text.gsub! /\b#{list_item}\b/i, replace(list_item) unless @exceptionlist.include? list_item
+				text.gsub! /\b#{list_item}\b/i do |match| 
+					if protected_by_exceptionlist? match then
+						match
+					else
+						replace(match)
+					end
+				end
 			end
 			text
 		end
@@ -73,7 +79,7 @@ module LanguageFilter
 			words = []
 			return words unless text.to_s.size >= 3
 			@matchlist.each do |list_item|
-				words << list_item if text =~ /\b#{list_item}\b/i and not @exceptionlist.include?(list_item)
+				text.scan(/\b#{list_item}\b/i) {|match| words << match unless protected_by_exceptionlist? match or match == [nil] }
 			end
 			words.uniq
 		end
@@ -82,18 +88,13 @@ module LanguageFilter
 
 		# VALIDATIONS
 
-		def validate_options
-			[@matchlist, @exceptionlist].each{ |content| validate_list_content(content) if content }
-			validate_replacement
-		end
-
 		def validate_list_content(content)
 			case content
 			when Array    then not content.empty?    || raise(LanguageFilter::EmptyContentList.new("List content array is empty."))
 			when String   then File.exists?(content) || raise(LanguageFilter::UnkownContentFile.new("List content file \"#{content}\" can't be found."))
 			when Pathname then content.exist?        || raise(LanguageFilter::UnkownContentFile.new("List content file \"#{content}\" can't be found."))
 			when Symbol   then content == :default   || raise(LanguageFilter::UnkownContent.new("The only accepted symbol is :default."))
-			else raise LanguageFilter::UnkownContent.new("The list content can be either an Array, Pathname, or String path to a .yml file.")
+			else raise LanguageFilter::UnkownContent.new("The list content can be either an Array, Pathname, or String path to a file.")
 			end
 		end
 
@@ -108,10 +109,10 @@ module LanguageFilter
 
 		def set_list_content(list)
 			case list
-			when :hate      then load_list File.dirname(__FILE__) + "/../config/filters/hate.yml"
+			when :hate      then load_list File.dirname(__FILE__) + "/../config/filters/hate.txt"
 			when :profanity then load_list File.dirname(__FILE__) + "/../config/filters/profanity.txt"
-			when :sex       then load_list File.dirname(__FILE__) + "/../config/filters/sex.yml"
-			when :violence  then load_list File.dirname(__FILE__) + "/../config/filters/violence.yml"
+			when :sex       then load_list File.dirname(__FILE__) + "/../config/filters/sex.txt"
+			when :violence  then load_list File.dirname(__FILE__) + "/../config/filters/violence.txt"
 			when Array then list
 			when String, Pathname then load_list list.to_s
 			else []
@@ -131,6 +132,11 @@ module LanguageFilter
 			when :default, :garbled then '$@!#%'
 			else raise LanguageFilter::UnknownReplacement.new("#{@replacement} is not a known replacement type.")
 			end
+		end
+
+		def protected_by_exceptionlist?(text)
+			@exceptionlist.each { |list_item| return true unless text.scan(/\b#{list_item}\b/i).empty? }
+			return false
 		end
 	end
 end
