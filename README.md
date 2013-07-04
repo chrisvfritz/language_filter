@@ -89,10 +89,10 @@ In the actual matching, each item you enter in the list is dumped into the middl
 
 There's not a whole lot going on there, but I'll quickly parse it for any who aren't very familiar with regex.
 
-- `#{list_item}` just dumps in our an item from our list that we want to check.
-- The two `\b` on either side ensure that only text surrounded by non-word characters (anything other letters, numbers, and the underscore) or the beginning or end of a string, are matched.
+- `#{list_item}` just dumps in the item from our list that we want to check.
+- The two `\b` on either side ensure that only text surrounded by non-word characters (anything other than letters, numbers, and the underscore), or the beginning or end of a string, are matched.
 - The two `/` wrapping (almost) the whole statement lets Ruby know that this is a regex statement.
-- The `i` right after the regex tells it to match case-insensitive, so that whether someone writes `giraffe`, `GIRAFFE`, or `gIrAffE`, the match won't fail.
+- The `i` right after the regex tells it to match case-insensitively, so that whether someone writes `giraffe`, `GIRAFFE`, or `gIrAffE`, the match won't fail.
 
 If you'd like to master some regex Rubyfu, I highly recommend stopping at [Rubular.com](http://rubular.com/).
 
@@ -140,7 +140,7 @@ Example: This is some f*ck*d up sh*t.
 
 `replacement: :nonconsonants` (useful where letters might be replaced with numbers, for example in L3375P34|< - i.e. leetspeak)
 
-Example: 7|-|1$ 1$ $0/\/\3 PhU****D UP ******.
+Example: 7|-|1$ 1$ $0/\/\3 Ph*****D UP ******.
 
 ### Methods to modify filters after creation
 
