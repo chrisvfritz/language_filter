@@ -63,7 +63,7 @@ module LanguageFilter
 					unless match == [nil] then
 						return true if @exceptionlist.empty? or not protected_by_exceptionlist?(match_start,match_end,text,start_at)
 					end
-					start_at = match_end + 1
+					start_at = match_end + 1 unless @exceptionlist.empty?
 				end
 			end
 			false
@@ -80,7 +80,7 @@ module LanguageFilter
 					unless match == [nil] then
 						words << match if @exceptionlist.empty? or not protected_by_exceptionlist?(match_start,match_end,text,start_at)
 					end
-					start_at = match_end + 1
+					start_at = match_end + 1 unless @exceptionlist.empty?
 				end
 			end
 			words.uniq
@@ -94,10 +94,10 @@ module LanguageFilter
 					match_start = text[start_at,text.size].index(/\b#{list_item}\b/i) unless @exceptionlist.empty?
 					match_end = match_start + match.size unless @exceptionlist.empty?
 					unless @exceptionlist.empty? or not protected_by_exceptionlist?(match_start,match_end,text,start_at) then
-						start_at = match_end + 1
+						start_at = match_end + 1 unless @exceptionlist.empty?
 						match
 					else
-						start_at = match_end + 1
+						start_at = match_end + 1 unless @exceptionlist.empty?
 						replace(match)
 					end
 				end
