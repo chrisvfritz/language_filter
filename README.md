@@ -68,20 +68,20 @@ Both of these lists can take four different kinds of inputs.
 
 By default, LanguageFilter comes with four different matchlists, each screening for a different category of language. These filters are accessible via:
 
-- `matchlist: :hate` (for hateful language, like `f**k you`, `b***h`, or *fag* itself)
+- `matchlist: :hate` (for hateful language, like `f**k you`, `b***h`, or `f*g`)
 - `matchlist: :profanity` (for swear/cuss words and phrases)
 - `matchlist: :sex` (for content of a sexual nature)
 - `matchlist: :violence` (for language indicating violence, such as `stab`, `gun`, or `murder`)
 
-There's quite a bit of overlap between these lists, but they can be useful for communities that may want to self-monitor, giving them an idea of the kind of content in a story or article before clicking through. This is how it's used on FractalWriting.org.
+There's quite a bit of overlap between these lists, but they can be useful for communities that may want to self-monitor, giving them an idea of the kind of content in a story or article before clicking through.
 
 #### An array of words and phrases to screen for
 
 - `matchlist: ['giraffes?','rhino\w*','elephants?'] # a non-exhaustive list of African animals`
 
-As you may have noticed, you can include regex! However, if you do, keep in mind that the more complicated regex you include, the slow the matching will be. Also, if you're assigning an array directly to matchlist and want to use regex, be sure to use single quotes (`'text'`), rather than double quotes (`"text"`). Otherwise, Ruby will think your backslashes are to help it interpolate the string, rather than to be intrepreted literally. 
+As you may have noticed, you can include regex! However, if you do, keep in mind that the more complicated regex you include, the slower the matching will be. Also, if you're assigning an array directly to matchlist and want to use regex, be sure to use single quotes (`'like this'`), rather than double quotes (`"like this"`). Otherwise, Ruby will think your backslashes are to help it interpolate the string, rather than to be intrepreted literally and passed into your regex, untouched.
 
-In the actual matching, each item you enter in the list is dumped into the middle of the following regex for matching, through the `list_item` variable.
+In the actual matching, each item you enter in the list is dumped into the middle of the following regex, through the `list_item` variable.
 
 ``` ruby
 /\b#{list_item}\b/i
@@ -90,7 +90,7 @@ In the actual matching, each item you enter in the list is dumped into the middl
 There's not a whole lot going on there, but I'll quickly parse it for any who aren't very familiar with regex.
 
 - `#{list_item}` just dumps in our an item from our list that we want to check.
-- The two `\b` on either side ensures that only text surrounded by non-word characters (anything other letters, numbers, and the underscore) or the beginning or end of a string, are matched.
+- The two `\b` on either side ensure that only text surrounded by non-word characters (anything other letters, numbers, and the underscore) or the beginning or end of a string, are matched.
 - The two `/` wrapping (almost) the whole statement lets Ruby know that this is a regex statement.
 - The `i` right after the regex tells it to match case-insensitive, so that whether someone writes `giraffe`, `GIRAFFE`, or `gIrAffE`, the match won't fail.
 
@@ -100,19 +100,13 @@ If you'd like to master some regex Rubyfu, I highly recommend stopping at [Rubul
 
 If you want to use your own lists, there are two ways to do it.
 
-Pass in a dynamically generated filepath (which is my preferred method):
+1) Pass in a filepath:
 
-``` ruby ```
+``` ruby
 matchlist: File.join(Rails.root,"/config/language_filters/my_custom_list.yml")
 ```
 
-Pass in a string with a filepath, which may look something like this:
-
-``` ruby ```
-matchlist: "/home/username/webapps/rails/my_app/config/filters/violence.yml"
-```
-
-If you haven't already guessed why I prefer the first method, it's because it won't break if you move your Rails app to a different folder.
+2) Pass in a `Pathname`, like Rails.root. I'm honestly not sure when you'd do this, but it was in option in Obscenity and it's still an option now.
 
 ##### Formatting your lists
 
@@ -133,15 +127,19 @@ If you're not using this gem to filter out potentially offensive content, then y
 Here are the options:
 
 `replacement: :stars` (this is the default replacement method)
+
 Example: This is some ****** up ****.
 
 `replacement: :garbled`
+
 Example: This is some $@!#% up $@!#%.
 
 `replacement: :vowels`
+
 Example: This is some f*ck*d up sh*t.
 
 `replacement: :nonconsonants` (useful where letters might be replaced with numbers, for example in L3375P34|< - i.e. leetspeak)
+
 Example: 7|-|1$ 1$ $0/\/\3 PhU****D UP ******.
 
 ### Methods to modify filters after creation
