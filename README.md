@@ -148,7 +148,7 @@ For example:
 
 ``` ruby
 my_filter = LanguageFilter::Filter.new(
-                                        matchlist: ['dog(s)?'], 
+                                        matchlist: ['dogs?'], 
                                         exceptionlist: ['dogs drool'],
                                         replacement: :garbled
                                       )
@@ -158,7 +158,7 @@ my_filter.sanitize('Dogs rule, cats drool!')
 my_filter.sanitize('Cats rule, dogs drool!')
 => "Cats rule, dogs drool!"
 
-my_filter.matchlist = ['dog(s)?','cats drool']
+my_filter.matchlist = ['dogs?','cats drool']
 my_filter.exceptionlist = ['dogs drool','dogs are cruel']
 my_filter.replacement = :stars
 
@@ -173,8 +173,8 @@ In the above case though, we just wanted to add items to the existing lists, so 
 For example:
 
 ``` ruby
-my_filter.matchlist.delete "dogs drool"
-my_filter.matchlist << "dogs are mean"
+my_filter.matchlist.pop
+my_filter.matchlist << "cats are liars" << "don't listen to( the)? cats" << "why does no one heed my warnings about the cats?! aren't you getting my messages?"
 my_filter.matchlist.uniq!
 # etc...
 ```

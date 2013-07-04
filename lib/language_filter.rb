@@ -56,37 +56,53 @@ module LanguageFilter
 		def match?(text)
 			return false unless text.to_s.size >= 3
 			@matchlist.each do |list_item|
-				text.scan(/\b#{list_item}\b/i) {|match| return true unless protected_by_exceptionlist?(match) or match == [nil] }
-			end
-			false
-		end
-
-		def sanitize(text)
-			return text unless text.to_s.size >= 3
-			@matchlist.each do |list_item|
-				text.gsub! /\b#{list_item}\b/i do |match| 
-					if protected_by_exceptionlist?(match) then
-						match
-					else
-						replace(match)
+				start_at = 0
+				text.scan(/\b#{list_item}\b/i) do |match|
+					match_start = text[start_at,text.size].index(/\b#{list_item}\b/i) unless @exceptionlist.empty?
+					match_end = match_start + match.size unless @exceptionlist.empty?
+					unless match == [nil] then
+						return true if @exceptionlist.empty? or not protected_by_exceptionlist?(match_start,match_end,text,start_at)
 					end
+					start_at = match_end + 1
 				end
 			end
-			text
+			false
 		end
 
 		def matched(text)
 			words = []
 			return words unless text.to_s.size >= 3
 			@matchlist.each do |list_item|
-				text.scan(/\b#{list_item}\b/i) {|match| words << match unless protected_by_exceptionlist?(match) or match == [nil] }
+				start_at = 0
+				text.scan(/\b#{list_item}\b/i) do |match| 
+					match_start = text[start_at,text.size].index(/\b#{list_item}\b/i) unless @exceptionlist.empty?
+					match_end = match_start + match.size unless @exceptionlist.empty?
+					unless match == [nil] then
+						words << match if @exceptionlist.empty? or not protected_by_exceptionlist?(match_start,match_end,text,start_at)
+					end
+					start_at = match_end + 1
+				end
 			end
 			words.uniq
 		end
 
-		def protected_by_exceptionlist?(text)
-			@exceptionlist.each { |list_item| return true unless text.scan(/\b#{list_item}\b/i).empty? }
-			return false
+		def sanitize(text)
+			return text unless text.to_s.size >= 3
+			@matchlist.each do |list_item|
+				start_at = 0
+				text.gsub! /\b#{list_item}\b/i do |match|
+					match_start = text[start_at,text.size].index(/\b#{list_item}\b/i) unless @exceptionlist.empty?
+					match_end = match_start + match.size unless @exceptionlist.empty?
+					unless @exceptionlist.empty? or not protected_by_exceptionlist?(match_start,match_end,text,start_at) then
+						start_at = match_end + 1
+						match
+					else
+						start_at = match_end + 1
+						replace(match)
+					end
+				end
+			end
+			text
 		end
 
 		private
@@ -95,9 +111,9 @@ module LanguageFilter
 
 		def validate_list_content(content)
 			case content
-			when Array    then not(content.empty?)   || raise(LanguageFilter::EmptyContentList.new("List content array is empty."))
-			when String   then File.exists?(content) || raise(LanguageFilter::UnkownContentFile.new("List content file \"#{content}\" can't be found."))
-			when Pathname then content.exist?        || raise(LanguageFilter::UnkownContentFile.new("List content file \"#{content}\" can't be found."))
+			when Array    then content.all? {|c| c.class == String} || raise(LanguageFilter::EmptyContentList.new("List content array is empty."))
+			when String   then File.exists?(content)                || raise(LanguageFilter::UnkownContentFile.new("List content file \"#{content}\" can't be found."))
+			when Pathname then content.exist?                       || raise(LanguageFilter::UnkownContentFile.new("List content file \"#{content}\" can't be found."))
 			when Symbol   then
 				case content
 				when :default, :hate, :profanity, :sex, :violence then true
@@ -130,6 +146,16 @@ module LanguageFilter
 
 		def load_list(filepath)
 			IO.readlines(filepath).each {|line| line.gsub!(/\n/,'')}
+		end
+
+		def protected_by_exceptionlist?(match_start,match_end,text,start_at)
+			@exceptionlist.each do |list_item|
+				exception_start = text[start_at,text.size].index(/\b#{list_item}\b/i)
+				if exception_start and exception_start <= match_start then
+					return true if exception_start + text[start_at,text.size][/\b#{list_item}\b/i].size >= match_end
+				end
+			end
+			return false
 		end
 
 		# This was moved to private because users should just use sanitize for any content
