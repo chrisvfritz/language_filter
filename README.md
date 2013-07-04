@@ -34,6 +34,7 @@ and
 
 ``` ruby
 validate :clean_username 
+
 def clean_username
   profanity_filter = LanguageFilter::Filter.new matchlist: :profanity
   if profanity_filter.match? username then
