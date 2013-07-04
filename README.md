@@ -1,8 +1,12 @@
 # LanguageFilter
 
-LanguageFilter is a Ruby gem to detect and optionally filter multiple categories of language. It was adapted from Thiago Jackiw's Obscenity gem to create a simple, intuitive way to detect and optionally filter multiple categories of language, originally for FractalWriting.org's diverse community.
+LanguageFilter is a Ruby gem to detect and optionally filter multiple categories of language. It was adapted from Thiago Jackiw's Obscenity gem for [FractalWriting.org](http://fractalwriting.org) and features many improvements, including:
 
-With multiple language categories and 
+- The ability to create and independently configure multiple language filters.
+- Comes pre-packaged with multiple matchlists (for hate, profanity, sex, and violence), for more fine-tuned language detection. I think this aligns much better with the real needs of communities that might need language filtering. For example, I probably want to flag and eventually ban users that use hateful language. Then for content featuring sex, profanity, and/or violence, I can let users know exactly what to expect before delving into content, much more so than with a single, all-encompassing "mature" tag.
+- Simpler, more intuitive configuration.
+- More neutral language to accommodate a wider variety of use cases. For example, LanguageFilter uses `matchlist` and `exceptionlist` instead of `blacklist` and `whitelist`, since the gem can be used not only for censorship, but also for content *type* identification (e.g. fantasy, sci-fi, historical, etc in the context of creative writing)
+- More robust exceptionlist (i.e. whitelist) handling. Given a simple example of a matchlist containing `cock` and an exceptionlist containing `game cock`, the other filtering gems I've seen will flag the `cock` in `game cock`, despite the exceptionlist. LanguageFilter is a little smarter and does what you would expect, so that when sanitizing the string `cock is usually sexual, but a game cock is just an animal`, the returned string will be `**** is usually sexual, but a game cock is just an animal`.
 
 ## Installation
 
