@@ -16,8 +16,30 @@ LanguageFilter is a Ruby gem to detect and optionally filter multiple categories
 - Add some activemodel integration, a la something like:
 
 ``` ruby
-filter_language :comment, matchlist: :hate, replacement: :stars
+filter_language :content, matchlist: :hate, replacement: :garbled
 validate_language :username, matchlist: :profanity
+```
+So that we no longer have to do this:
+
+```ruby
+before_save :remove_hateful_language
+
+def remove_hateful_language
+  hate_filter = LanguageFilter::Filter.new matchlist: :hate, replacement: :garbled
+  content = hate_filter.sanitize(content)
+end
+````
+
+and
+
+``` ruby
+validate :clean_username 
+def clean_username
+  profanity_filter = LanguageFilter::Filter.new matchlist: :profanity
+  if profanity_filter.match? username then
+    errors.add(:username, "The following language is inappropriate in a username: #{profanity_filter.matched(username).join(', ')}"
+  end
+end
 ```
 
 ## Installation
