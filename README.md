@@ -8,6 +8,18 @@ LanguageFilter is a Ruby gem to detect and optionally filter multiple categories
 - More neutral language to accommodate a wider variety of use cases. For example, LanguageFilter uses `matchlist` and `exceptionlist` instead of `blacklist` and `whitelist`, since the gem can be used not only for censorship, but also for content *type* identification (e.g. fantasy, sci-fi, historical, etc in the context of creative writing)
 - More robust exceptionlist (i.e. whitelist) handling. Given a simple example of a matchlist containing `cock` and an exceptionlist containing `game cock`, the other filtering gems I've seen will flag the `cock` in `game cock`, despite the exceptionlist. LanguageFilter is a little smarter and does what you would expect, so that when sanitizing the string `cock is usually sexual, but a game cock is just an animal`, the returned string will be `**** is usually sexual, but a game cock is just an animal`.
 
+## TO-DO
+
+- Write a test suite. It's embarrassing.
+- Expand the pre-packaged matchlists to be more exhaustive
+- Add a default exceptionlist for each matchlist
+- Add some activemodel integration, a la something like:
+
+``` ruby
+filter_language :comment, matchlist: :hate, replacement: :stars
+validate_language :username, matchlist: :profanity
+```
+
 ## Installation
 
 Add this line to your application's Gemfile:
