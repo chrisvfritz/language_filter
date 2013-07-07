@@ -2,7 +2,7 @@
 blow ?job\w*
 fellat\w*
 felch\w*
-\w*f[\b_]*[uv][\b_]*c[\b_]*k\w*
+\w*fuck\w*
 wank\w*
 cock\w*
 cock suck\w*
@@ -14,8 +14,8 @@ rim ?job\w*
 knob ?gobbl\w*
 anal\w*
 rectums?
-\w*a[s\$5z]{2}
-\w*a[s\$5z]{2}h[o0]l[e3]\w*
+ass+
+as*hole\w*
 ballsacks?
 scrotums?
 bollocks
@@ -45,10 +45,10 @@ homos?
 sluts?
 whor\w*
 skank\w*
-g+[\b_]*h?[\b_]*[ae][\b_]*ys?
+g+h?[ae]ys?
 dykes?
-\w*f[\b_]*a[\b_]*g\w*
-\w*cum\w*
+fag\w*
+cum\w*
 jizz\w*
 pubes?
 pubic

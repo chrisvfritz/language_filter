@@ -1,6 +1,6 @@
-\w*f[\b_]*[uv][\b_]*c[\b_]*k[\b_][a([e3]r)]s?
-\w*f[\b_]*a[\b_]*g\w*
-\w*c[\b_]*u[\b_]*n[\b_]*t\w*
-\w*a[s\$5z]{2}h[o0]l[e3]\w*
-\w*b[\b_]*i[\b_]*t[\b_]*c[\b_]*h\w*
+\w*fuck(?:[ae]r?)s?
+fag\w*
+cunt\w*
+as*hole\w*
+\w*bitch\w*
 fudge ?pack\w*

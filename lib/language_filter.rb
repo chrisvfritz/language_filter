@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'pathname'
 require 'yaml'
 require 'language_filter/error'
@@ -5,21 +7,34 @@ require 'language_filter/version'
 
 module LanguageFilter
 	class Filter
-		attr_accessor :matchlist, :exceptionlist, :replacement
+		attr_accessor :matchlist, :exceptionlist, :replacement, :creative_letters
+		attr_reader :creative_matchlist, :creative_exceptionlist
+
+		BEG_REGEX = '(?<=\\s|\\A|_|\\-|\\.])'
+		END_REGEX = '(?=\\b|\\s|\\z|_|\\-|\\.)'
 
 		DEFAULT_EXCEPTIONLIST = []
 		DEFAULT_MATCHLIST = File.dirname(__FILE__) + "/../config/filters/profanity.txt"
 		DEFAULT_REPLACEMENT = :stars
+		DEFAULT_CREATIVE_LETTERS = false
 
 		def initialize(options={})
+			@creative_letters = if options[:creative_letters] then
+				options[:creative_letters]
+			else DEFAULT_CREATIVE_LETTERS end
+
 			@matchlist = if options[:matchlist] then
 				validate_list_content(options[:matchlist])
 				set_list_content(options[:matchlist])
 			else set_list_content(DEFAULT_MATCHLIST) end
+			@creative_matchlist = @matchlist.map {|list_item| use_creative_letters(list_item)}
+
 			@exceptionlist = if options[:exceptionlist] then
 				validate_list_content(options[:exceptionlist])
-				set_list_content(options[:exceptionlist]) 
+				set_list_content(options[:exceptionlist])
 			else set_list_content(DEFAULT_EXCEPTIONLIST) end
+			@creative_exceptionlist = @exceptionlist.map {|list_item| use_creative_letters(list_item)}
+
 			@replacement = options[:replacement] || DEFAULT_REPLACEMENT
 			validate_replacement
 		end
@@ -30,17 +45,18 @@ module LanguageFilter
 			validate_list_content(content)
 			@matchlist = case content 
 			when :default then set_list_content(DEFAULT_MATCHLIST)
-			else @matchlist = set_list_content(content)
+			else set_list_content(content)
 			end
+			@creative_matchlist = @matchlist.map {|list_item| use_creative_letters(list_item)}
 		end
 
 		def exceptionlist=(content)
-			if content == :default then
-				@exceptionlist = set_list_content(DEFAULT_EXCEPTIONLIST)
-			else
-				validate_list_content(content)
-				@exceptionlist = set_list_content(content)
+			validate_list_content(content)
+			@exceptionlist = case content 
+			when :default then set_list_content(DEFAULT_EXCEPTIONLIST)
+			else set_list_content(content)
 			end
+			@creative_exceptionlist = @exceptionlist.map {|list_item| use_creative_letters(list_item)}
 		end
 
 		def replacement=(value)
@@ -55,10 +71,14 @@ module LanguageFilter
 
 		def match?(text)
 			return false unless text.to_s.size >= 3
-			@matchlist.each do |list_item|
+			chosen_matchlist = case @creative_letters
+			when true then @creative_matchlist
+			else @matchlist
+			end
+			chosen_matchlist.each do |list_item|
 				start_at = 0
-				text.scan(/\b#{list_item}\b/i) do |match|
-					match_start = text[start_at,text.size].index(/\b#{list_item}\b/i) unless @exceptionlist.empty?
+				text.scan(%r"#{BEG_REGEX}#{list_item}#{END_REGEX}"i) do |match|
+					match_start = text[start_at,text.size].index(%r"#{BEG_REGEX}#{list_item}#{END_REGEX}"i) unless @exceptionlist.empty?
 					match_end = match_start + match.size unless @exceptionlist.empty?
 					unless match == [nil] then
 						return true if @exceptionlist.empty? or not protected_by_exceptionlist?(match_start,match_end,text,start_at)
@@ -72,10 +92,16 @@ module LanguageFilter
 		def matched(text)
 			words = []
 			return words unless text.to_s.size >= 3
-			@matchlist.each do |list_item|
+			chosen_matchlist = case @creative_letters
+			when true then @creative_matchlist
+			else @matchlist
+			end
+			chosen_matchlist.each do |list_item|
 				start_at = 0
-				text.scan(/\b#{list_item}\b/i) do |match| 
-					match_start = text[start_at,text.size].index(/\b#{list_item}\b/i) unless @exceptionlist.empty?
+				text.scan(%r"#{BEG_REGEX}#{list_item}#{END_REGEX}"i) do |match|
+					match = match.compact.join("") if match.class == Array
+					next if match.empty?
+					match_start = text[start_at,text.size].index(%r"#{BEG_REGEX}#{list_item}#{END_REGEX}"i) unless @exceptionlist.empty?
 					match_end = match_start + match.size unless @exceptionlist.empty?
 					unless match == [nil] then
 						words << match if @exceptionlist.empty? or not protected_by_exceptionlist?(match_start,match_end,text,start_at)
@@ -88,10 +114,14 @@ module LanguageFilter
 
 		def sanitize(text)
 			return text unless text.to_s.size >= 3
-			@matchlist.each do |list_item|
+			chosen_matchlist = case @creative_letters
+			when true then @creative_matchlist
+			else @matchlist
+			end
+			chosen_matchlist.each do |list_item|
 				start_at = 0
-				text.gsub! /\b#{list_item}\b/i do |match|
-					match_start = text[start_at,text.size].index(/\b#{list_item}\b/i) unless @exceptionlist.empty?
+				text.gsub! %r"#{BEG_REGEX}#{list_item}#{END_REGEX}"i do |match|
+					match_start = text[start_at,text.size].index(%r"#{BEG_REGEX}#{list_item}#{END_REGEX}"i) unless @exceptionlist.empty?
 					match_end = match_start + match.size unless @exceptionlist.empty?
 					unless @exceptionlist.empty? or not protected_by_exceptionlist?(match_start,match_end,text,start_at) then
 						start_at = match_end + 1 unless @exceptionlist.empty?
@@ -148,11 +178,50 @@ module LanguageFilter
 			IO.readlines(filepath).each {|line| line.gsub!(/\n/,'')}
 		end
 
+		def use_creative_letters(text)
+			new_text = ""
+			last_char = ""
+			text.each_char do |char|
+				if last_char != '\\'
+					# new_text += '[\\W_]*' if last_char != "" and char =~ /[A-Za-z]/
+					new_text += case char.downcase
+					when 'a' then '(?:(?:a|@|4|\\^|/\\\\|/\\-\\\\|aye?)+)'
+					when 'b' then '(?:(?:b|i3|l3|13|\\|3|/3|\\\\3|3|8|6|\\u00df|p\\>|\\|\\:|bee+)+)'
+					when 'c','k' then '(?:(?:c|\\u00a9|\\u00a2|\\(|\\[|cee+|see+|k|x|[\\|\\[\\]\\)\\(li1\\!\\u00a1][\\<\\{\\(]|[ck]ay)+)'
+					when 'd' then '(?:(?:d|\\)|\\|\\)|\\[\\)|\\?|\\|\\>|\\|o|dee+)+)'
+					when 'e' then '(?:(?:e|3|\\&|\\u20ac|\\u00eb|\\[\\-)+)'
+					when 'f' then '(?:(?:f|ph|\\u0192|[\\|/\\\\][\\=\\#]|ef+)+)'
+					when 'g' then '(?:(?:g|6|9|\\&|c\\-|\\(_\\+|gee+)+)'
+					when 'h' then '(?:(?:h|\\#|[\\|\\}\\{\\\\/\\(\\)\\[\\]]\\-?[\\|\\}\\{\\\\/\\(\\)\\[\\]])+)'
+					when 'i','l' then '(?:(?:i|l|1|\\!|\\u00a1|\\||\\]|\\[|\\\\|/|eye|\\u00a3|[\\|li1\\!\\u00a1\\[\\]\\(\\)\\{\\}]_|\\u00ac|el+)+)'
+					when 'j' then '(?:(?:j|\\]|\\u00bf|_\\||_/|\\</|\\(/|jay+)+)'
+					when 'm' then '(?:(?:m|[\\|\\(\\)/](?:\\\\/|v|\\|)[\\|\\(\\)\\\\]|\\^\\^|em+)+)'
+					when 'n' then '(?:(?:n|[\\|/\\[\\]\\<\\>]\\\\[\\|/\\[\\]\\<\\>]|/v|\\^/|en+)+)'
+					when 'o' then '(?:(?:o|0|\\(\\)|\\[\\]|\\u00b0|oh+)+)'
+					when 'p' then '(?:(?:p|\\u00b6|[\\|li1\\[\\]\\!\\u00a1/\\\\][\\*o\\u00b0\\"\\>7\\^]|pee+)+)'
+					when 'q' then '(?:(?:q|9|(?:0|\\(\\)|\\[\\])_|\\(_\\,\\)|\\<\\||[ck]ue*|qu?eue*)+)'
+					when 'r' then '(?:(?:r|[/1\\|li]?[2\\^\\?z]|\\u00ae|ar+)+)'
+					when 's','z' then '(?:(?:s|\\$|5|\\u00a7|es+|z|2|7_|\\~/_|\\>_|\\%|zee+)+)'
+					when 't' then '(?:(?:t|7|\\+|\\u2020|\\-\\|\\-|\\\'\\]\\[\\\')+)'
+					when 'u','v' then '(?:(?:u|v|\\u00b5|[\\|\\(\\)\\[\\]]_[\\|\\(\\)\\[\\]]|\\L\\||\\/|you|yoo+|vee+)+)'
+					when 'w' then '(?:(?:w|vv|\\\\/\\\\/|\\\\\\|/|\\\\\\\\\\\'|\\\'//|\\\\\\^/|\\(n\\)|double ?(?:u+|you|yoo+))+)'
+					when 'x' then '(?:(?:x|\\>\\<|\\%|\\*|\\}\\{|\\)\\(|e[ck]+s+|ex+)+)'
+					when 'y' then '(?:(?:y|\\u00a5|j|\\\'/|wh?(?:y+|ie+))+)'
+					else char
+					end
+				else
+					new_text += char
+				end
+				last_char = char
+			end
+			new_text
+		end
+
 		def protected_by_exceptionlist?(match_start,match_end,text,start_at)
 			@exceptionlist.each do |list_item|
-				exception_start = text[start_at,text.size].index(/\b#{list_item}\b/i)
+				exception_start = text[start_at,text.size].index(%r"#{BEG_REGEX}#{list_item}#{END_REGEX}"i)
 				if exception_start and exception_start <= match_start then
-					return true if exception_start + text[start_at,text.size][/\b#{list_item}\b/i].size >= match_end
+					return true if exception_start + text[start_at,text.size][%r"#{BEG_REGEX}#{list_item}#{END_REGEX}"i].size >= match_end
 				end
 			end
 			return false
