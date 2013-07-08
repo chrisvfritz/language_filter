@@ -2,8 +2,8 @@
 \w*fcuk\w*
 \w*fuk\w*
 \w*shit\w*
-ass+
 ass+(?:es)?
+asshol\w*
 bastards?
 \w*bitch\w*
 cunt\w*
