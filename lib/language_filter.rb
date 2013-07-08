@@ -169,14 +169,14 @@ module LanguageFilter
       when :profanity then load_list File.dirname(__FILE__) + "/../config/#{options[:folder] || "matchlists"}/profanity.txt"
       when :sex       then load_list File.dirname(__FILE__) + "/../config/#{options[:folder] || "matchlists"}/sex.txt"
       when :violence  then load_list File.dirname(__FILE__) + "/../config/#{options[:folder] || "matchlists"}/violence.txt"
-      when Array then list
+      when Array then list.map {|list_item| list_item.gsub(/(?<=[^\\]|\A)\((?=[^(\?\:)])/,'(?:')}
       when String, Pathname then load_list list.to_s
       else []
       end
     end
 
     def load_list(filepath)
-      IO.readlines(filepath).each {|line| line.gsub!(/\n/,''); line.gsub!(/(?<=[^\\])\((?=[^(\?\:)])/,'(?:')}
+      IO.readlines(filepath).each {|line| line.gsub!(/\n/,''); line.gsub!(/(?<=[^\\]|\A)\((?=[^(\?\:)])/,'(?:')}
     end
 
     def use_creative_letters(text)
