@@ -1,7 +1,6 @@
 # encoding: utf-8
 
 require 'pathname'
-require 'yaml'
 require 'language_filter/error'
 require 'language_filter/version'
 
