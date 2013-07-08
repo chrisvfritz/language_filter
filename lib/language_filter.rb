@@ -176,7 +176,7 @@ module LanguageFilter
     end
 
     def load_list(filepath)
-      IO.readlines(filepath).each {|line| line.gsub!(/\n/,'')}
+      IO.readlines(filepath).each {|line| line.gsub!(/\n/,''); line.gsub!(/(?<=[^\\])\((?=[^(\?\:)])/,'(?:')}
     end
 
     def use_creative_letters(text)
