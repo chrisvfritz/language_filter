@@ -47,7 +47,7 @@ skank\w*
 g+h?[ae]ys?
 dykes?
 fag\w*
-cumm?(ing|er)
+cumm?(ing|er)?
 jizz\w*
 pubes?
 puberty
