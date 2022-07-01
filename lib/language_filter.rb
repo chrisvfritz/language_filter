@@ -142,7 +142,7 @@ module LanguageFilter
     def validate_list_content(content)
       case content
       when Array    then content.all? {|c| c.class == String} || raise(LanguageFilter::EmptyContentList.new("List content array is empty."))
-      when String   then File.exists?(content)                || raise(LanguageFilter::UnkownContentFile.new("List content file \"#{content}\" can't be found."))
+      when String   then File.exist?(content)                 || raise(LanguageFilter::UnkownContentFile.new("List content file \"#{content}\" can't be found."))
       when Pathname then content.exist?                       || raise(LanguageFilter::UnkownContentFile.new("List content file \"#{content}\" can't be found."))
       when Symbol   then
         case content
