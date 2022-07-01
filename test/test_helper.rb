@@ -3,9 +3,9 @@ require 'minitest/pride'
 require File.expand_path('../../lib/language_filter.rb', __FILE__)
 
 def valid_non_empty_list?(list)
-  list.must_be_kind_of Array
-  list.wont_be_empty
-  list.each {|list_item| list_item.must_be_kind_of String}
+  _(list).must_be_kind_of Array
+  _(list).wont_be_empty
+  list.each {|list_item| _(list_item).must_be_kind_of String}
 end
 
 def test_against_word_lists
@@ -99,12 +99,12 @@ def test_against_word_lists
   word_lists.each do |wordlist|
     wordlist[:expected][:normal].each do |matchlist|
       filter = LanguageFilter::Filter.new(matchlist: matchlist[:name], creative_letters: false)
-      filter.matched(wordlist[:contents]).must_be :==, matchlist[:results],
+      _(filter.matched(wordlist[:contents])).must_be :==, matchlist[:results],
         "expected\n#{filter.matched(wordlist[:contents])}\nto be\n#{matchlist[:results]}\nwhile testing normal #{matchlist[:name]} against #{wordlist[:name]}"
     end
     wordlist[:expected][:creative].each do |matchlist|
       filter = LanguageFilter::Filter.new(matchlist: matchlist[:name], creative_letters: true)
-      filter.matched(wordlist[:contents]).must_be :==, matchlist[:results],
+      _(filter.matched(wordlist[:contents])).must_be :==, matchlist[:results],
         "expected\n#{filter.matched(wordlist[:contents])}\nto be\n#{matchlist[:results]}\nwhile testing creative #{matchlist[:name]} against #{wordlist[:name]}"
     end
   end
