@@ -68,7 +68,7 @@ def test_against_word_lists
           },
           {
             name: :sex,
-            results: ["sex","sexual","sexes","Sex","Sexual","cock","cocks","Cock","Dick","DICK","ass","Ass","penis","prick","pricks","manhood","breast","breasts","cleavage","muff","Homo","homo","slut","whore","gay","Gay","dyke","Dyke","dykes","fagots","fagged","faggots","puberty"]
+            results: ["sex","sexual","sexes","Sex","Sexual","cock","cocks","Cock","Dick","DICK","ass","Ass","penis","prick","pricks","manhood","breast","breasts","cleavage","muff","Homo","homo","slut","whore","gay","Gay","dyke","Dyke","dykes","fagots","fagged","faggots","cum","Cum","puberty"]
           },
           {
             name: :violence,
@@ -86,7 +86,7 @@ def test_against_word_lists
           },
           {
             name: :sex,
-            results: ["sex","sexual","sexes","Sex","Sexual","cock","cocks","Cock","Dick","DICK","ass","Ass","penis","prick","pricks","manhood","breast","breasts","cleavage","muff","Kunti","kunt","Homo","homo","slut","whore","gay","Gay","dyke","Dyke","dykes","fagots","fagged","faggots","puberty"]
+            results: ["sex","sexual","sexes","Sex","Sexual","cock","cocks","Cock","Dick","DICK","ass","Ass","penis","prick","pricks","manhood","breast","breasts","cleavage","muff","Kunti","kunt","Homo","homo","slut","whore","gay","Gay","dyke","Dyke","dykes","fagots","fagged","faggots","cum","Cum","puberty"]
           },
           {
             name: :violence,
