@@ -6,8 +6,8 @@ require 'language_filter/version'
 
 module LanguageFilter
   class Filter
-    attr_accessor :matchlist, :exceptionlist, :replacement, :creative_letters
-    attr_reader :creative_matchlist
+    attr_accessor :creative_letters
+    attr_reader :creative_matchlist, :matchlist, :exceptionlist, :replacement
 
     CREATIVE_BEG_REGEX = '(?<=\\s|\\A|_|\\-|\\.)'
     CREATIVE_END_REGEX = '(?=\\b|\\s|\\z|_|\\-|\\.)'
